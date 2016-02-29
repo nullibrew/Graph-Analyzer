@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>LDAP to Graph Loader and Analyzer by nulliedge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">LDAP to Graph Loader and Analyzer</h1>
+      <h2 class="project-tagline">An LDAP to Neo4J loader and analyzer tool</h2>
+      <a href="https://github.com/nulliedge/Graph-Analyzer" class="btn">View on GitHub</a>
+      <a href="https://github.com/nulliedge/Graph-Analyzer/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/nulliedge/Graph-Analyzer/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="ldap-to-graph-loader-and-analyzer" class="anchor" href="#ldap-to-graph-loader-and-analyzer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>LDAP to graph Loader and Analyzer</h1>
+
+<p>Graph Loader, aka Graph Analyzer v 1.0</p>
+
+<h3>
+<a id="summary" class="anchor" href="#summary" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Summary</h3>
+
+<p>The Graph Loader and Analyzer tool creates a Neo4J Graph database from data read from LDAP (v 1.0). In the graph, Users and Groups are related using 2 types of relationships:</p>
+
+<ul>
+<li>
+<code>MEMBER_OF</code> : user group membership</li>
+<li>
+<code>PART_OF</code> : Group hierarchy, relates a child to its parent Group</li>
+</ul>
+
+<p>Sample resulting Graph:</p>
+
+<p><img src="SampleGraph.png" alt="Sample Graph image"></p>
+
+<p>The idea is to then :</p>
+
+<ol>
+<li>use the graph to optimize and simplify the LDAP Directory, through the use of relevant CYPHER queries (V 2.0). The optimizations could then be reported and acted upon.</li>
+<li>use the graph directly in Access Policy decisions</li>
+</ol>
+
+<p>Finally (v 3.0), the Analyzer could apply the suggested optimizations directly to the LDAP directory.</p>
+
+<p>Note that the Loader can also be just used as such: an LDAP to Graph loader tool.</p>
+
+<h3>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h3>
+
+<p>Currently at <em>version 1</em> (December 2015), the Graph Analyzer has the following features:</p>
+
+<ul>
+<li>Uses the <a href="https://www.ldap.com/unboundid-ldap-sdk-for-java">UnboundID SDK</a> to perform <em>paginated</em> LDAP Searches on any LDAP Directory source.</li>
+<li>Uses the UnboundID LDAP connection pool.</li>
+<li>Uses a custom lightweight extendable Connector framework, to accommodate more diverse data sources in the future.</li>
+<li>Uses LDAP attribute to Neo4J Property mappings to filter and transform LDAP Attributes.</li>
+<li>Uses the Neo4J REST APIs for all Graph I/O operations. The assumption is that the Neo4J server could be anywhere (including the cloud), and thus not embedded.</li>
+<li>All Processing is done in memory with I/O operations kept to a minimum.</li>
+<li>Supports USERS and GROUP hierarchies.</li>
+<li>Uses Java Logging to log its operation.</li>
+</ul>
+
+<p>A sample LDIF files is provided, with 2000 users and 200 groups (file: <code>data/NeoLDAPSample.ldif</code>). The group memberships are random.</p>
+
+<h3>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements</h3>
+
+<p>The utility is built as a <em>Gradle</em> project using the <em>Groovy</em> language. It therefore requires:</p>
+
+<ul>
+<li>The <a href="http://www.groovy-lang.org/download.html">Groovy</a> language. On Mac: <code>brew install groovy</code>.</li>
+<li>
+<a href="http://gradle.org/gradle-download/">Gradle</a>. On Mac: <code>brew install gradle</code>.</li>
+</ul>
+
+<h3>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h3>
+
+<ol>
+<li>Download the source (use the <strong><code>develop</code></strong> branch !).</li>
+<li>Update the configuration files to match your environment (location: the <code>resources</code> subdir). See below for configuration details...</li>
+<li>From the source dir: <code>gradle build --refresh-dependencies</code> .</li>
+<li>To Run: <code>neoLoader.sh</code> - Or on Windows boxes: 
+<code>groovy -cp build/libs/GraphAnalyzer-0.0.1-SNAPSHOT.jar:runtime/* -Djava.util.logging.config.file=resources/logging.properties NeoLoader.groovy</code>
+</li>
+</ol>
+
+<h3>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration</h3>
+
+<p>The Graph Loader uses the following config files...</p>
+
+<h6>
+<a id="ldapserverproperties" class="anchor" href="#ldapserverproperties" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ldapServer.properties</h6>
+
+<p>Gathers all the connectivity and metadata of the source LDAP Directory. In particular:</p>
+
+<ul>
+<li>
+<code>host</code> : LDAP Server Host</li>
+<li>
+<code>port</code> : LDAP Server Port</li>
+<li>
+<code>binddn</code> : LDAP Admin User DN</li>
+<li>
+<code>password</code> : LDAP User password</li>
+<li>
+<code>userBasedn</code> : The DN of the container under which the User Accounts are stored. The Loader will <em>NOT</em> create a node for this container (on flat DIT, it may contain millions of user accounts, which would imply too many relationships in the graph for a single node).</li>
+<li>
+<code>groupBaseDn</code> : The DN of the container under which the Groups are stored. The Loader will <em>NOT</em> create a node for this container.</li>
+<li>
+<code>userobjclass</code> : The LDAP Objectclass of the User Accounts. Used for searching.</li>
+<li>
+<code>groupobjclass</code> : The LDAP Objectclass of the Groups. Used for searching.</li>
+<li>
+<code>memberattribute</code> : The name of the Group multi-valued attribute that stores group members. The Member values are expected to be User Account DNs.</li>
+<li>
+<code>nbconnections</code> : The number of connections to use in the LDAP Connections pool.</li>
+<li>
+<code>pagesize</code> : The size of the LDAP search page to use while searching. For best results, this should be set to the LDAP Server search limit.</li>
+</ul>
+
+<h6>
+<a id="loggingproperties" class="anchor" href="#loggingproperties" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>logging.properties</h6>
+
+<p>The Java Logging properties file. Used here mainly to set the log level for the utility. Just set the <code>.level</code> property. </p>
+
+<h6>
+<a id="neoserverproperties" class="anchor" href="#neoserverproperties" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>NeoServer.properties</h6>
+
+<p>Gathers all configuration information pertaining to the target Neo4J server. I.e.,</p>
+
+<ul>
+<li>
+<code>host</code> : The Neo4J Host</li>
+<li>
+<code>port</code> : The Neo4J port</li>
+<li>
+<code>authorization</code>: The Base64-encoded basic HTTP authentication credentials for the Neo4J User, used in REST calls to Neo4J. The encoded string is in the form: <code>&lt;user&gt;:&lt;password&gt;</code>
+</li>
+</ul>
+
+<h6>
+<a id="propertymapsjson" class="anchor" href="#propertymapsjson" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>propertyMaps.json</h6>
+
+<p>A JSON file that provides LDAP Attribute to Neo4J Node Property mappings for each Entity supported by the Loader. The Entities can be either of Group or Person. Mappings are provided for each: LDAP Attributes (left) are mapped to Neo4J property names (right). The Loader will only fetch the LDAP attributes mapped here.</p>
+
+<h3>
+<a id="about-performance" class="anchor" href="#about-performance" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>About Performance</h3>
+
+<p>The Graph Loader is designed with performance in mind, at the cost of RAM. It performs the minimal I/O operations on both source and target sides. To achieve this, the Loader buffers <em>all</em> read LDAP entries in memory. </p>
+
+<p>The amount of memory required depends on the number of attributes mapped (the fewer the smaller the amount of required RAM), the size of the mapped attribute values and the number of Entries to load. Several GB of RAm may be required for millions of LDAP entries.</p>
+
+<p>Since the Neo4J server is expected to be remote, the Loader can't use the Neo4J Java SDK, which only supports (as of Dec. 2015) embedded Neo instances. The loader therefore has to issue as many REST create calls as there are nodes and relationships to create (see also section 'Next Steps' below). The Neo4J I/Os are the bottleneck here.</p>
+
+<p>Benchmarking baseline, using the provided LDIF sample:</p>
+
+<p><em>2002</em> Users, <em>205</em> Groups and <em>2774</em> Relationships created in about <strong>35s</strong> on a Mac powerbook with 16GB RAM...</p>
+
+<h3>
+<a id="next-steps" class="anchor" href="#next-steps" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Next Steps</h3>
+
+<p>Possible future enhancements:</p>
+
+<ul>
+<li>Support for Organization Entity hierarchies</li>
+<li>Add a <em>MaxMemory</em> config parameter to limit the amount of RAM used by the tool</li>
+<li>Support for LDIF Source files</li>
+<li>Support SSL connections</li>
+<li>Determine if multi-threading can help performance</li>
+<li>Determine better/faster ways to create nodes and relationships in Neo4J. In particular: batch loads.</li>
+<li>REST API server to trigger all actions through REST.</li>
+<li>A Web UI for integration in the Cloud.</li>
+</ul>
+
+<p>For v 2.0:</p>
+
+<ul>
+<li>Devise and write CYPHER queries to optimize the graph (and hence the source LDAP directory)</li>
+<li>Orchestrate optimization/analysis of the graph and produce reports.</li>
+</ul>
+
+<p>For v 3.0:</p>
+
+<ul>
+<li>Modify the Source LDAP Directory based on the optimization reports.</li>
+</ul>
+
+<h3>
+<a id="who-do-i-talk-to" class="anchor" href="#who-do-i-talk-to" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Who do I talk to?</h3>
+
+<ul>
+<li>Repo owner or admin</li>
+<li><a href="mailto:alex@nulli.com">alex@nulli.com</a></li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/nulliedge/Graph-Analyzer">LDAP to Graph Loader and Analyzer</a> is maintained by <a href="https://github.com/nulliedge">nulliedge</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
