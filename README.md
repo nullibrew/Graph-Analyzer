@@ -3,7 +3,7 @@
 Graph Loader, aka Graph Analyzer v 1.0 - Alex Babeanu, 2016
 
 ### Summary
-The Graph Loader and Analyzer tool creates a Neo4J Graph database from data read from LDAP (v 1.0). In the graph, Users and Groups are related using 2 types of relationships:
+The Graph Loader and Analyzer tool creates a Neo4J Graph database from data read from any LDAP directory. In the graph, Users and Groups are related using 2 types of relationships:
 
 * `MEMBER_OF` : user group membership
 * `PART_OF` : Group hierarchy, relates a child to its parent Group
