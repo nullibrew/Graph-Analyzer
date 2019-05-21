@@ -41,8 +41,6 @@ The utility is built as a *Gradle* project using the *Groovy* language. It there
 * The [Groovy](http://www.groovy-lang.org/download.html) language. On Mac: `brew install groovy`.
 * [Gradle](http://gradle.org/gradle-download/). On Mac: `brew install gradle`.
 
-Additionally, it assumes a Neo4J Graph Database as the target, the [Neo4J Java Driver](https://github.com/neo4j/neo4j-java-driver) is therefore required also.
-
 Finally, this utility uses the UnboundID Java LDAP SDK, the [corresponding libraries](https://github.com/pingidentity/ldapsdk/releases) are therefore also required.
 
 ### Installation
